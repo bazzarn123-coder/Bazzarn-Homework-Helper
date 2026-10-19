@@ -1,0 +1,744 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bazzarn Homework Helper</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- KaTeX for LaTeX rendering -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0f7ff',
+              100: '#e0effe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Audio visualizer wave animation */
+    @keyframes pulse-wave {
+      0%, 100% { height: 6px; }
+      50% { height: 28px; }
+    }
+    .wave-bar {
+      animation: pulse-wave 1.2s infinite ease-in-out;
+    }
+    .wave-bar:nth-child(2) { animation-delay: 0.2s; }
+    .wave-bar:nth-child(3) { animation-delay: 0.4s; }
+    .wave-bar:nth-child(4) { animation-delay: 0.1s; }
+    .wave-bar:nth-child(5) { animation-delay: 0.3s; }
+  </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col font-sans">
+
+  <!-- Navigation Header -->
+  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white shadow-lg shadow-blue-500/30">
+          <i class="fa-solid font-bold text-xl fa-graduation-cap"></i>
+        </div>
+        <div>
+          <h1 class="font-bold text-lg tracking-tight text-white flex items-center gap-2">
+            Bazzarn <span class="bg-blue-500/20 text-blue-400 text-xs px-2 py-0.5 rounded-full font-medium border border-blue-500/30">AI Homework Helper</span>
+          </h1>
+          <p class="text-xs text-slate-400">Math, Science & Word Problem Solver</p>
+        </div>
+      </div>
+
+      <!-- Auth & Settings Controls -->
+      <div class="flex items-center gap-3">
+        <!-- API Key Modal Trigger Button -->
+        <button id="apiKeyBtn" onclick="toggleModal('apiKeyModal')" class="px-3 py-1.5 text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg border border-slate-700 transition flex items-center gap-1.5">
+          <i class="fa-solid fa-key text-amber-400"></i>
+          <span id="apiKeyStatusLabel">System Key</span>
+        </button>
+
+        <!-- User Profile / Auth Button -->
+        <div id="authContainer">
+          <button id="loginBtn" onclick="toggleModal('authModal')" class="px-4 py-1.5 text-xs font-semibold bg-blue-600 hover:bg-blue-500 text-white rounded-lg shadow transition flex items-center gap-2">
+            <i class="fa-solid fa-right-to-bracket"></i> Sign In
+          </button>
+          <div id="userProfile" class="hidden flex items-center gap-2">
+            <img id="userAvatar" class="w-8 h-8 rounded-full border border-blue-500" src="" alt="User Avatar" />
+            <span id="userName" class="text-xs font-medium text-slate-300 hidden md:inline"></span>
+            <button onclick="handleSignOut()" class="p-1.5 text-slate-400 hover:text-red-400 transition" title="Sign Out">
+              <i class="fa-solid fa-right-from-bracket"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Layout -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+    
+    <!-- Left Column: Input Methods & Helper Tools (5 Cols) -->
+    <section class="lg:col-span-5 flex flex-col gap-6">
+      
+      <!-- Input Mode Navigation Tabs -->
+      <div class="bg-slate-800/60 p-1 rounded-xl border border-slate-700/60 flex text-xs font-medium">
+        <button id="tabText" onclick="switchTab('text')" class="flex-1 py-2 rounded-lg bg-blue-600 text-white shadow transition flex items-center justify-center gap-2">
+          <i class="fa-solid fa-keyboard"></i> Text / Voice
+        </button>
+        <button id="tabCamera" onclick="switchTab('camera')" class="flex-1 py-2 rounded-lg text-slate-400 hover:text-white transition flex items-center justify-center gap-2">
+          <i class="fa-solid fa-camera"></i> Camera Scan
+        </button>
+        <button id="tabCalc" onclick="switchTab('calc')" class="flex-1 py-2 rounded-lg text-slate-400 hover:text-white transition flex items-center justify-center gap-2">
+          <i class="fa-solid fa-calculator"></i> Calculator
+        </button>
+      </div>
+
+      <!-- Tab 1: Text & Voice Prompt Area -->
+      <div id="paneText" class="bg-slate-800/40 rounded-2xl p-5 border border-slate-700/60 flex flex-col gap-4">
+        <div class="flex justify-between items-center">
+          <label class="text-xs font-semibold text-slate-300 tracking-wider uppercase flex items-center gap-2">
+            <i class="fa-solid fa-pen-nib text-blue-400"></i> Enter Homework Question
+          </label>
+          <span class="text-xs text-slate-500">LaTeX Supported ($...$)</span>
+        </div>
+
+        <div class="relative">
+          <textarea id="questionInput" rows="5" placeholder="Type your problem here... e.g., John has a rectangular garden that is 12 meters long and 8 meters wide. What is the area and perimeter of the garden?" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500 transition resize-none"></textarea>
+          
+          <!-- Speech Input Button -->
+          <div class="absolute bottom-3 right-3 flex items-center gap-2">
+            <div id="waveVisualizer" class="hidden flex items-center gap-1 h-6 px-2 bg-slate-800 rounded-lg border border-red-500/30">
+              <span class="wave-bar w-1 bg-red-500 rounded"></span>
+              <span class="wave-bar w-1 bg-red-500 rounded"></span>
+              <span class="wave-bar w-1 bg-red-500 rounded"></span>
+              <span class="wave-bar w-1 bg-red-500 rounded"></span>
+            </div>
+            <button id="micBtn" onclick="toggleSpeechRecognition()" class="w-9 h-9 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 flex items-center justify-center transition" title="Dictate Problem">
+              <i class="fa-solid fa-microphone text-sm"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Quick Examples / Presets -->
+        <div>
+          <span class="text-[11px] text-slate-400 font-medium block mb-2">Try Quick Example:</span>
+          <div class="flex flex-wrap gap-2">
+            <button onclick="setPrompt('John has a rectangular garden that is 15 meters long and 8 meters wide. If he builds a path 1 meter wide around the inside of the garden, what is the remaining area for plants?')" class="text-xs bg-slate-800 hover:bg-slate-700 text-blue-300 px-2.5 py-1 rounded-lg border border-slate-700/80 transition text-left">
+              📐 John's Garden Area
+            </button>
+            <button onclick="setPrompt('Solve for x: \\frac{2x + 5}{3} = 9')" class="text-xs bg-slate-800 hover:bg-slate-700 text-blue-300 px-2.5 py-1 rounded-lg border border-slate-700/80 transition text-left">
+              🔢 Fraction Equation
+            </button>
+            <button onclick="setPrompt('A train travels at 60 mph for 2.5 hours. How far does it go?')" class="text-xs bg-slate-800 hover:bg-slate-700 text-blue-300 px-2.5 py-1 rounded-lg border border-slate-700/80 transition text-left">
+              🚀 Speed & Distance
+            </button>
+          </div>
+        </div>
+
+        <button onclick="solveTextProblem()" class="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold text-sm rounded-xl shadow-lg shadow-blue-600/20 transition flex items-center justify-center gap-2">
+          <i class="fa-solid fa-wand-magic-sparkles"></i> Solve Problem
+        </button>
+      </div>
+
+      <!-- Tab 2: Camera & Photo Upload -->
+      <div id="paneCamera" class="hidden bg-slate-800/40 rounded-2xl p-5 border border-slate-700/60 flex flex-col gap-4">
+        <label class="text-xs font-semibold text-slate-300 tracking-wider uppercase flex items-center gap-2">
+          <i class="fa-solid fa-camera text-blue-400"></i> Snap or Upload Problem
+        </label>
+
+        <!-- Image Dropzone / Preview Area -->
+        <div id="dropZone" class="border-2 border-dashed border-slate-700 hover:border-blue-500/50 rounded-2xl p-6 text-center cursor-pointer transition flex flex-col items-center justify-center gap-3 bg-slate-900/50 relative overflow-hidden min-h-[200px]" onclick="document.getElementById('fileInput').click()">
+          <input type="file" id="fileInput" accept="image/*" capture="environment" class="hidden" onchange="handleFileSelect(event)">
+          
+          <div id="uploadPrompt" class="flex flex-col items-center gap-2">
+            <div class="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center text-blue-400 text-xl border border-slate-700">
+              <i class="fa-solid fa-cloud-arrow-up"></i>
+            </div>
+            <p class="text-xs font-medium text-slate-300">Click to snap photo or upload image</p>
+            <p class="text-[11px] text-slate-500">Supports JPG, PNG, WEBP math notes</p>
+          </div>
+
+          <img id="imagePreview" class="hidden max-h-48 rounded-lg object-contain w-full" alt="Uploaded Problem" />
+        </div>
+
+        <button id="solveImgBtn" onclick="solveImageProblem()" disabled class="w-full py-3 bg-slate-700 text-slate-400 font-semibold text-sm rounded-xl cursor-not-allowed transition flex items-center justify-center gap-2">
+          <i class="fa-solid fa-eye"></i> Analyze & Solve Image
+        </button>
+      </div>
+
+      <!-- Tab 3: Scientific & Fraction Calculator -->
+      <div id="paneCalc" class="hidden bg-slate-800/40 rounded-2xl p-5 border border-slate-700/60 flex flex-col gap-4">
+        <div class="flex justify-between items-center">
+          <label class="text-xs font-semibold text-slate-300 tracking-wider uppercase flex items-center gap-2">
+            <i class="fa-solid fa-calculator text-blue-400"></i> Scientific & Fraction Calc
+          </label>
+        </div>
+
+        <!-- Calc Display -->
+        <div class="bg-slate-900 p-3 rounded-xl border border-slate-700/80 flex flex-col gap-1">
+          <div id="calcFormula" class="text-xs text-slate-400 text-right min-h-[1rem] overflow-x-auto"></div>
+          <div id="calcDisplay" class="text-lg font-bold text-slate-100 text-right min-h-[2rem] overflow-x-auto">0</div>
+        </div>
+
+        <!-- Keypad Grid -->
+        <div class="grid grid-cols-4 gap-2 text-xs font-semibold">
+          <button onclick="calcInput('C')" class="p-3 rounded-lg bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30">C</button>
+          <button onclick="calcInput('(')" class="p-3 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700">(</button>
+          <button onclick="calcInput(')')" class="p-3 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700">)</button>
+          <button onclick="calcInput('/')" class="p-3 rounded-lg bg-blue-600/30 text-blue-300 border border-blue-500/30 hover:bg-blue-600/40">÷</button>
+
+          <button onclick="calcInput('7')" class="p-3 rounded-lg bg-slate-800 text-slate-100 hover:bg-slate-700">7</button>
+          <button onclick="calcInput('8')" class="p-3 rounded-lg bg-slate-800 text-slate-100 hover:bg-slate-700">8</button>
+          <button onclick="calcInput('9')" class="p-3 rounded-lg bg-slate-800 text-slate-100 hover:bg-slate-700">9</button>
+          <button onclick="calcInput('*')" class="p-3 rounded-lg bg-blue-600/30 text-blue-300 border border-blue-500/30 hover:bg-blue-600/40">×</button>
+
+          <button onclick="calcInput('4')" class="p-3 rounded-lg bg-slate-800 text-slate-100 hover:bg-slate-700">4</button>
+          <button onclick="calcInput('5')" class="p-3 rounded-lg bg-slate-800 text-slate-100 hover:bg-slate-700">5</button>
+          <button onclick="calcInput('6')" class="p-3 rounded-lg bg-slate-800 text-slate-100 hover:bg-slate-700">6</button>
+          <button onclick="calcInput('-')" class="p-3 rounded-lg bg-blue-600/30 text-blue-300 border border-blue-500/30 hover:bg-blue-600/40">-</button>
+
+          <button onclick="calcInput('1')" class="p-3 rounded-lg bg-slate-800 text-slate-100 hover:bg-slate-700">1</button>
+          <button onclick="calcInput('2')" class="p-3 rounded-lg bg-slate-800 text-slate-100 hover:bg-slate-700">2</button>
+          <button onclick="calcInput('3')" class="p-3 rounded-lg bg-slate-800 text-slate-100 hover:bg-slate-700">3</button>
+          <button onclick="calcInput('+')" class="p-3 rounded-lg bg-blue-600/30 text-blue-300 border border-blue-500/30 hover:bg-blue-600/40">+</button>
+
+          <button onclick="calcInput('0')" class="p-3 rounded-lg bg-slate-800 text-slate-100 hover:bg-slate-700">0</button>
+          <button onclick="calcInput('.')" class="p-3 rounded-lg bg-slate-800 text-slate-100 hover:bg-slate-700">.</button>
+          <button onclick="calcInput('sqrt')" class="p-3 rounded-lg bg-slate-800 text-indigo-300 hover:bg-slate-700">√</button>
+          <button onclick="calcEvaluate()" class="p-3 rounded-lg bg-blue-600 text-white font-bold hover:bg-blue-500 shadow-md">=</button>
+        </div>
+
+        <button onclick="transferCalcToPrompt()" class="w-full py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-xs font-medium text-slate-300 transition flex items-center justify-center gap-2">
+          <i class="fa-solid fa-arrow-left"></i> Send Formula to Solver
+        </button>
+      </div>
+
+    </section>
+
+    <!-- Right Column: Interactive Solution Display (7 Cols) -->
+    <section class="lg:col-span-7 flex flex-col gap-4">
+      <div class="bg-slate-800/40 border border-slate-700/60 rounded-2xl p-5 md:p-6 flex-1 flex flex-col min-h-[500px]">
+        
+        <!-- Solution Header -->
+        <div class="flex items-center justify-between border-b border-slate-700/60 pb-3 mb-4">
+          <div class="flex items-center gap-2">
+            <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+            <h2 class="font-bold text-sm text-slate-200">Step-by-Step AI Explanation</h2>
+          </div>
+          <button onclick="copySolution()" class="text-xs text-slate-400 hover:text-white transition flex items-center gap-1.5 bg-slate-800 px-2.5 py-1 rounded-md border border-slate-700">
+            <i class="fa-solid fa-copy"></i> Copy Solution
+          </button>
+        </div>
+
+        <!-- Initial Placeholder State -->
+        <div id="solutionPlaceholder" class="flex-1 flex flex-col items-center justify-center text-center p-8 text-slate-500 gap-3">
+          <div class="w-16 h-16 rounded-full bg-slate-800/80 flex items-center justify-center text-2xl text-slate-600 border border-slate-700">
+            <i class="fa-solid fa-brain"></i>
+          </div>
+          <h3 class="font-semibold text-slate-300 text-sm">Ready to Solve</h3>
+          <p class="text-xs max-w-sm">Enter a text question, record your voice, or snap a picture of your homework to view step-by-step guidance.</p>
+        </div>
+
+        <!-- Loading State Indicator -->
+        <div id="solutionLoading" class="hidden flex-1 flex flex-col items-center justify-center text-center p-8 gap-4">
+          <div class="relative w-12 h-12">
+            <div class="absolute top-0 left-0 w-full h-full border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
+          </div>
+          <p id="loadingStatusText" class="text-xs text-blue-400 font-medium">Analyzing problem with Gemini AI...</p>
+        </div>
+
+        <!-- Rendered Solution Output Container -->
+        <div id="solutionContent" class="hidden flex-1 overflow-y-auto pr-1 text-slate-200 text-sm leading-relaxed space-y-4"></div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Modal 1: Custom API Key Config -->
+  <div id="apiKeyModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
+      <h3 class="text-lg font-bold text-white mb-2 flex items-center gap-2">
+        <i class="fa-solid fa-key text-amber-400"></i> Gemini API Settings
+      </h3>
+      <p class="text-xs text-slate-400 mb-4">
+        You can use your own Google Gemini API key or fall back to the built-in system key.
+      </p>
+
+      <div class="flex flex-col gap-3 mb-6">
+        <label class="text-xs font-semibold text-slate-300">Custom Gemini API Key</label>
+        <input type="password" id="customApiKeyInput" placeholder="AIzaSy..." class="bg-slate-900 border border-slate-700 rounded-xl p-3 text-xs text-slate-100 focus:border-blue-500 focus:outline-none" />
+      </div>
+
+      <div class="flex gap-2 justify-end">
+        <button onclick="toggleModal('apiKeyModal')" class="px-4 py-2 text-xs font-medium text-slate-400 hover:text-white">Cancel</button>
+        <button onclick="saveApiKey()" class="px-4 py-2 text-xs font-semibold bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition">Save Key</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 2: Firebase Authentication Modal -->
+  <div id="authModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
+      <button onclick="toggleModal('authModal')" class="absolute top-4 right-4 text-slate-400 hover:text-white">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <h3 class="text-lg font-bold text-white mb-1">Sign In to Bazzarn</h3>
+      <p class="text-xs text-slate-400 mb-6">Save your homework history and synchronize settings.</p>
+
+      <!-- Google Sign In -->
+      <button onclick="signInWithGoogle()" class="w-full py-2.5 px-4 bg-slate-900 hover:bg-slate-950 border border-slate-700 rounded-xl text-xs font-semibold text-slate-200 transition flex items-center justify-center gap-3 mb-4">
+        <svg class="w-4 h-4" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
+        Continue with Google
+      </button>
+
+      <div class="relative flex py-2 items-center mb-4">
+        <div class="flex-grow border-t border-slate-700"></div>
+        <span class="flex-shrink mx-3 text-[11px] text-slate-500">OR EMAIL</span>
+        <div class="flex-grow border-t border-slate-700"></div>
+      </div>
+
+      <!-- Email / Password Form -->
+      <form onsubmit="handleEmailAuth(event)" class="space-y-3">
+        <div>
+          <label class="text-xs text-slate-300 font-medium block mb-1">Email</label>
+          <input type="email" id="authEmail" required placeholder="student@example.com" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-xs text-slate-100 focus:border-blue-500 focus:outline-none" />
+        </div>
+        <div>
+          <label class="text-xs text-slate-300 font-medium block mb-1">Password</label>
+          <input type="password" id="authPassword" required placeholder="••••••••" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-xs text-slate-100 focus:border-blue-500 focus:outline-none" />
+        </div>
+
+        <div class="flex gap-2 pt-2">
+          <button type="submit" onclick="authAction = 'login'" class="flex-1 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs rounded-xl transition">
+            Log In
+          </button>
+          <button type="submit" onclick="authAction = 'signup'" class="flex-1 py-2.5 bg-slate-700 hover:bg-slate-600 text-slate-200 font-semibold text-xs rounded-xl transition">
+            Sign Up
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- JavaScript App Logic -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+
+    // Firebase Config Initialization
+    const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+      apiKey: "AIzaSyDummyKeyForFallbackPurpose",
+      authDomain: "bazzarn-helper.firebaseapp.com",
+      projectId: "bazzarn-helper",
+      storageBucket: "bazzarn-helper.appspot.com",
+      appId: "1:123456789:web:abcdef"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    window.firebaseAuth = auth;
+    window.GoogleAuthProvider = GoogleAuthProvider;
+    window.signInWithPopup = signInWithPopup;
+    window.signInWithEmailAndPassword = signInWithEmailAndPassword;
+    window.createUserWithEmailAndPassword = createUserWithEmailAndPassword;
+    window.signOut = signOut;
+
+    // Listen for Auth state change
+    onAuthStateChanged(auth, (user) => {
+      const loginBtn = document.getElementById('loginBtn');
+      const userProfile = document.getElementById('userProfile');
+      const userAvatar = document.getElementById('userAvatar');
+      const userName = document.getElementById('userName');
+
+      if (user) {
+        loginBtn.classList.add('hidden');
+        userProfile.classList.remove('hidden');
+        userAvatar.src = user.photoURL || `https://placehold.co/100x100/2563eb/ffffff?text=${(user.email||'U')[0].toUpperCase()}`;
+        userName.textContent = user.displayName || user.email.split('@')[0];
+      } else {
+        loginBtn.classList.remove('hidden');
+        userProfile.classList.add('hidden');
+      }
+    });
+  </script>
+
+  <script>
+    // State management
+    let selectedImageBase64 = null;
+    let customApiKey = localStorage.getItem('bazzarn_custom_key') || '';
+    let speechRecognition = null;
+    let isListening = false;
+    let calcExpression = '';
+    window.authAction = 'login';
+
+    // Toggle UI Modals
+    function toggleModal(id) {
+      const modal = document.getElementById(id);
+      modal.classList.toggle('hidden');
+    }
+
+    // Switch Input Tabs
+    function switchTab(tab) {
+      ['Text', 'Camera', 'Calc'].forEach(t => {
+        const pane = document.getElementById(`pane${t}`);
+        const tabBtn = document.getElementById(`tab${t}`);
+        if (t.toLowerCase() === tab) {
+          pane.classList.remove('hidden');
+          tabBtn.className = "flex-1 py-2 rounded-lg bg-blue-600 text-white shadow transition flex items-center justify-center gap-2";
+        } else {
+          pane.classList.add('hidden');
+          tabBtn.className = "flex-1 py-2 rounded-lg text-slate-400 hover:text-white transition flex items-center justify-center gap-2";
+        }
+      });
+    }
+
+    // Quick Presets
+    function setPrompt(text) {
+      document.getElementById('questionInput').value = text;
+    }
+
+    // API Key Management
+    function saveApiKey() {
+      const key = document.getElementById('customApiKeyInput').value.trim();
+      customApiKey = key;
+      localStorage.setItem('bazzarn_custom_key', key);
+      updateApiKeyUI();
+      toggleModal('apiKeyModal');
+    }
+
+    function updateApiKeyUI() {
+      const label = document.getElementById('apiKeyStatusLabel');
+      if (customApiKey) {
+        label.textContent = "Custom Key Active";
+        label.className = "text-amber-400 font-semibold";
+      } else {
+        label.textContent = "System Key";
+        label.className = "text-slate-300";
+      }
+    }
+
+    // Speech-to-Text Setup with Graceful Fallback
+    function toggleSpeechRecognition() {
+      const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!Speech) {
+        alert("Speech Recognition is not supported on this browser. Please type your query.");
+        return;
+      }
+
+      const micBtn = document.getElementById('micBtn');
+      const waveVisualizer = document.getElementById('waveVisualizer');
+
+      if (isListening) {
+        speechRecognition.stop();
+        return;
+      }
+
+      speechRecognition = new Speech();
+      speechRecognition.continuous = false;
+      speechRecognition.interimResults = true;
+      speechRecognition.lang = 'en-US';
+
+      speechRecognition.onstart = () => {
+        isListening = true;
+        micBtn.classList.add('bg-red-600', 'text-white');
+        waveVisualizer.classList.remove('hidden');
+      };
+
+      speechRecognition.onresult = (e) => {
+        let transcript = Array.from(e.results)
+          .map(result => result[0].transcript)
+          .join('');
+        document.getElementById('questionInput').value = transcript;
+      };
+
+      speechRecognition.onerror = (e) => {
+        console.error("Speech error:", e.error);
+        stopSpeechUI();
+      };
+
+      speechRecognition.onend = () => {
+        stopSpeechUI();
+      };
+
+      speechRecognition.start();
+    }
+
+    function stopSpeechUI() {
+      isListening = false;
+      const micBtn = document.getElementById('micBtn');
+      const waveVisualizer = document.getElementById('waveVisualizer');
+      micBtn.classList.remove('bg-red-600', 'text-white');
+      waveVisualizer.classList.add('hidden');
+    }
+
+    // Image Upload Handling
+    function handleFileSelect(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        selectedImageBase64 = evt.target.result.split(',')[1];
+        const preview = document.getElementById('imagePreview');
+        const prompt = document.getElementById('uploadPrompt');
+        const solveBtn = document.getElementById('solveImgBtn');
+
+        preview.src = evt.target.result;
+        preview.classList.remove('hidden');
+        prompt.classList.add('hidden');
+
+        solveBtn.disabled = false;
+        solveBtn.className = "w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold text-sm rounded-xl shadow-lg transition flex items-center justify-center gap-2 cursor-pointer";
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // Calculator Logic
+    function calcInput(val) {
+      const display = document.getElementById('calcDisplay');
+      if (val === 'C') {
+        calcExpression = '';
+      } else if (val === 'sqrt') {
+        calcExpression += 'Math.sqrt(';
+      } else {
+        calcExpression += val;
+      }
+      display.textContent = calcExpression || '0';
+    }
+
+    function calcEvaluate() {
+      const display = document.getElementById('calcDisplay');
+      const formula = document.getElementById('calcFormula');
+      try {
+        formula.textContent = calcExpression;
+        // Safe evaluation
+        const res = eval(calcExpression.replace(/Math\.sqrt/g, 'Math.sqrt'));
+        calcExpression = String(res);
+        display.textContent = calcExpression;
+      } catch (err) {
+        display.textContent = 'Error';
+        calcExpression = '';
+      }
+    }
+
+    function transferCalcToPrompt() {
+      if (calcExpression) {
+        switchTab('text');
+        const prompt = document.getElementById('questionInput');
+        prompt.value = (prompt.value ? prompt.value + ' ' : '') + calcExpression;
+      }
+    }
+
+    // Call Gemini API with Retry Logic & Grounding Options
+    async function callGeminiApi(payload) {
+      const apiKey = customApiKey || "";
+      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+      let retries = 0;
+      const maxRetries = 3;
+      
+      while (retries < maxRetries) {
+        try {
+          const res = await fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+
+          if (!res.ok) {
+            throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+          }
+
+          const data = await res.json();
+          return data;
+        } catch (err) {
+          retries++;
+          if (retries >= maxRetries) throw err;
+          await new Promise(r => setTimeout(r, Math.pow(2, retries) * 1000));
+        }
+      }
+    }
+
+    // Solve Text Problem
+    async function solveTextProblem() {
+      const promptText = document.getElementById('questionInput').value.trim();
+      if (!promptText) {
+        alert("Please enter or dictate a homework problem.");
+        return;
+      }
+
+      showLoading("Generating step-by-step mathematical reasoning...");
+
+      const systemInstruction = `
+        You are an expert Math, Science, and Homework Tutor.
+        Always break down word problems step-by-step clearly.
+        If the question is about geometry (like John's rectangular garden or area problems), clearly define length, width, area formulas, and perimeter formulas.
+        Use LaTeX math notation wrapped in single dollar signs ($...$) for inline equations and double dollar signs ($$...$$) for block equations.
+        Structure your response with clear Markdown headers (e.g., ### Step 1: Understanding the Given Data).
+      `;
+
+      const payload = {
+        contents: [{ parts: [{ text: promptText }] }],
+        systemInstruction: { parts: [{ text: systemInstruction }] }
+      };
+
+      try {
+        const responseData = await callGeminiApi(payload);
+        const text = responseData.candidates?.[0]?.content?.parts?.[0]?.text || "Unable to solve the problem.";
+        renderSolution(text);
+      } catch (err) {
+        showError("API Error: Failed to fetch answer. Please verify your custom API key or connection.");
+      }
+    }
+
+    // Solve Image Problem (Vision Model)
+    async function solveImageProblem() {
+      if (!selectedImageBase64) return;
+
+      showLoading("Analyzing image content and solving...");
+
+      const systemInstruction = `
+        Extract the mathematical or scientific problem from the provided image and solve it step-by-step.
+        Show all intermediate work, formula usage, and final answers using LaTeX math notation ($...$).
+      `;
+
+      const payload = {
+        contents: [{
+          role: "user",
+          parts: [
+            { text: "Solve this homework problem step by step." },
+            { inlineData: { mimeType: "image/png", data: selectedImageBase64 } }
+          ]
+        }],
+        systemInstruction: { parts: [{ text: systemInstruction }] }
+      };
+
+      try {
+        const responseData = await callGeminiApi(payload);
+        const text = responseData.candidates?.[0]?.content?.parts?.[0]?.text || "Unable to process the image.";
+        renderSolution(text);
+      } catch (err) {
+        showError("Failed to analyze image. Please ensure the photo is clear.");
+      }
+    }
+
+    // Render Solution & Process KaTeX Math
+    function renderSolution(markdownText) {
+      document.getElementById('solutionPlaceholder').classList.add('hidden');
+      document.getElementById('solutionLoading').classList.add('hidden');
+      
+      const container = document.getElementById('solutionContent');
+      container.classList.remove('hidden');
+
+      // Simple Markdown Parsing (Headings, bold, lists)
+      let formatted = markdownText
+        .replace(/^### (.*$)/gim, '<h3 class="text-base font-bold text-blue-400 mt-3 mb-1">$1</h3>')
+        .replace(/^## (.*$)/gim, '<h2 class="text-lg font-bold text-slate-100 mt-4 mb-2">$1</h2>')
+        .replace(/\*\*(.*?)\*\*/g, '<strong class="text-white font-semibold">$1</strong>')
+        .replace(/^\* (.*$)/gim, '<li class="ml-4 list-disc text-slate-300">$1</li>')
+        .replace(/\n/g, '<br/>');
+
+      container.innerHTML = formatted;
+
+      // Render LaTeX equations using KaTeX auto-render
+      if (window.renderMathInElement) {
+        renderMathInElement(container, {
+          delimiters: [
+            {left: '$$', right: '$$', display: true},
+            {left: '$', right: '$', display: false}
+          ],
+          throwOnError: false
+        });
+      }
+    }
+
+    function showLoading(msg) {
+      document.getElementById('solutionPlaceholder').classList.add('hidden');
+      document.getElementById('solutionContent').classList.add('hidden');
+      document.getElementById('loadingStatusText').textContent = msg;
+      document.getElementById('solutionLoading').classList.remove('hidden');
+    }
+
+    function showError(errText) {
+      document.getElementById('solutionLoading').classList.add('hidden');
+      const container = document.getElementById('solutionContent');
+      container.classList.remove('hidden');
+      container.innerHTML = `<div class="p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-xs font-medium"><i class="fa-solid fa-triangle-exclamation mr-2"></i> ${errText}</div>`;
+    }
+
+    function copySolution() {
+      const container = document.getElementById('solutionContent');
+      if (!container.innerText) return;
+      
+      const tempArea = document.createElement('textarea');
+      tempArea.value = container.innerText;
+      document.body.appendChild(tempArea);
+      tempArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(tempArea);
+
+      alert("Solution copied to clipboard!");
+    }
+
+    // Auth Actions
+    async function signInWithGoogle() {
+      try {
+        const provider = new window.GoogleAuthProvider();
+        await window.signInWithPopup(window.firebaseAuth, provider);
+        toggleModal('authModal');
+      } catch (err) {
+        alert("Google Sign In Error: " + err.message);
+      }
+    }
+
+    async function handleEmailAuth(e) {
+      e.preventDefault();
+      const email = document.getElementById('authEmail').value;
+      const pass = document.getElementById('authPassword').value;
+
+      try {
+        if (window.authAction === 'signup') {
+          await window.createUserWithEmailAndPassword(window.firebaseAuth, email, pass);
+        } else {
+          await window.signInWithEmailAndPassword(window.firebaseAuth, email, pass);
+        }
+        toggleModal('authModal');
+      } catch (err) {
+        alert("Authentication Error: " + err.message);
+      }
+    }
+
+    async function handleSignOut() {
+      await window.signOut(window.firebaseAuth);
+    }
+
+    // Initialize UI on load
+    window.onload = function() {
+      updateApiKeyUI();
+      if (customApiKey) {
+        document.getElementById('customApiKeyInput').value = customApiKey;
+      }
+    };
+  </script>
+</body>
+</html>
+```
