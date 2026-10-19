@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -344,13 +343,14 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
     import { getAuth, signInWithPopup, GoogleAuthProvider, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
-    // Firebase Config Initialization
+    // Firebase Config Initialization (Updated with your custom keys)
     const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
-      apiKey: "AIzaSyDummyKeyForFallbackPurpose",
-      authDomain: "bazzarn-helper.firebaseapp.com",
-      projectId: "bazzarn-helper",
-      storageBucket: "bazzarn-helper.appspot.com",
-      appId: "1:123456789:web:abcdef"
+      apiKey: "AIzaSyBKD9VcDA52i_iiBKEDBZrwPObsyo2-tgg",
+      authDomain: "bazzarnhelper.firebaseapp.com",
+      projectId: "bazzarnhelper",
+      storageBucket: "bazzarnhelper.firebasestorage.app",
+      messagingSenderId: "395091581924",
+      appId: "1:395091581924:web:adca2097d659ded1b105f1"
     };
 
     const app = initializeApp(firebaseConfig);
@@ -741,4 +741,3 @@
   </script>
 </body>
 </html>
-```
